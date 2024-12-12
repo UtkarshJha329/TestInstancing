@@ -62,12 +62,12 @@ int main()
     instancedMaterial.shader = instanceShader;
 
     DrawArraysIndirectCommand curCommand1 = { 4, megaArrayOfAllPositions.size() / 2, 0, 0 };
-    DrawArraysIndirectCommand curCommand2 = { 4, megaArrayOfAllPositions.size() / 2, 0, megaArrayOfAllPositions.size() / 2 };
+    DrawArraysIndirectCommand curCommand2 = { 4, megaArrayOfAllPositions.size() / 2, 0, (megaArrayOfAllPositions.size() / 2) + 1 };
     drawArraysIndirectCommands.push_back(curCommand1);
     drawArraysIndirectCommands.push_back(curCommand2);
 
     rlEnableVertexArray(renderQuad.mesh.vaoId);
-    unsigned int indirectBuffer = rlLoadDrawBufferIndirect(drawArraysIndirectCommands.size(), drawArraysIndirectCommands.data(), false);
+    unsigned int indirectBuffer = rlLoadDrawBufferIndirect(drawArraysIndirectCommands.size() * sizeof(DrawArraysIndirectCommand), drawArraysIndirectCommands.data(), false);
     
     DisableCursor();
 
