@@ -18,8 +18,10 @@
 void PlaneFacingDir(Vector3 dir, GenerativeMesh & curMesh);
 
 static void DrawChunk(Shader instanceShader, Material instancedMaterial
-    , std::vector<int> &megaArrayOfAllPosition
-    , GenerativeMesh& renderQuad);
+    , std::vector<int>& megaArrayOfAllPositions
+    , GenerativeMesh& renderQuad
+    , unsigned int indirectBufferVBO
+    , std::vector<DrawArraysIndirectCommand>& drawArraysIndirectCommands);
 
 Vector3 up = { 0, 1, 0 };
 Vector3 down = { 0, -1, 0 };
@@ -36,12 +38,12 @@ int main()
 
     Camera camera = { { 31.0f, 31.0f, 31.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, 45.0f, 0 };
 
-    std::vector<int> megaArrayOfAlPositions;
+    std::vector<int> megaArrayOfAllPositions;
 
     for (int i = 0; i < 100; i++)
     {
         int curRandPosition = GetRandomValue(0, 31) << 10 | GetRandomValue(0, 31) << 5 | GetRandomValue(0, 31);
-        megaArrayOfAlPositions.push_back(curRandPosition);
+        megaArrayOfAllPositions.push_back(curRandPosition);
     }
 
     GenerativeMesh renderQuad = { 0 };
@@ -58,6 +60,14 @@ int main()
 
     Material instancedMaterial = LoadMaterialDefault();
     instancedMaterial.shader = instanceShader;
+
+    DrawArraysIndirectCommand curCommand1 = { 4, megaArrayOfAllPositions.size() / 2, 0, 0 };
+    DrawArraysIndirectCommand curCommand2 = { 4, megaArrayOfAllPositions.size() / 2, 0, megaArrayOfAllPositions.size() / 2 };
+    drawArraysIndirectCommands.push_back(curCommand1);
+    drawArraysIndirectCommands.push_back(curCommand2);
+
+    rlEnableVertexArray(renderQuad.mesh.vaoId);
+    unsigned int indirectBuffer = rlLoadDrawBufferIndirect(drawArraysIndirectCommands.size(), drawArraysIndirectCommands.data(), false);
     
     DisableCursor();
 
@@ -74,7 +84,8 @@ int main()
         ClearBackground(RAYWHITE);
 
             BeginMode3D(camera);
-            DrawChunk(instanceShader, instancedMaterial, megaArrayOfAlPositions, renderQuad);
+            
+                DrawChunk(instanceShader, instancedMaterial, megaArrayOfAllPositions, renderQuad, indirectBuffer, drawArraysIndirectCommands);
 
             DrawGrid(10, 1.0);
             EndMode3D();
@@ -83,6 +94,7 @@ int main()
         EndDrawing();
     }
 
+    rlUnloadVertexBuffer(indirectBuffer);
     UnloadShader(instanceShader);
     CloseWindow();
     return 0;
@@ -90,17 +102,14 @@ int main()
 
 static void DrawChunk(Shader instanceShader, Material instancedMaterial
     , std::vector<int> &megaArrayOfAllPositions
-    , GenerativeMesh &renderQuad) {
-
-    DrawArraysIndirectCommand curCommand1 = { 4, megaArrayOfAllPositions.size(), 0, 0 };
-    drawArraysIndirectCommands.push_back(curCommand1);
-
-    rlEnableVertexArray(renderQuad.mesh.vaoId);
-    unsigned int indirectBuffer = rlLoadDrawBufferIndirect(drawArraysIndirectCommands.size(), drawArraysIndirectCommands.data(), false);
+    , GenerativeMesh &renderQuad
+    , unsigned int indirectBufferVBO
+    , std::vector<DrawArraysIndirectCommand> &drawArraysIndirectCommands) {
     
-    DrawMeshMultiInstancedDrawIndirect(renderQuad, instancedMaterial, megaArrayOfAllPositions.data(), megaArrayOfAllPositions.size(), indirectBuffer, drawArraysIndirectCommands.data(), drawArraysIndirectCommands.size());
+    DrawMeshMultiInstancedDrawIndirect(renderQuad, instancedMaterial
+        , megaArrayOfAllPositions.data(), megaArrayOfAllPositions.size()
+        , indirectBufferVBO, drawArraysIndirectCommands.data(), drawArraysIndirectCommands.size());
 
-    rlUnloadVertexBuffer(indirectBuffer);
 
 }
 
