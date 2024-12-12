@@ -38,7 +38,7 @@ int main()
 
     std::vector<int> megaArrayOfAlPositions;
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 100; i++)
     {
         int curRandPosition = GetRandomValue(0, 31) << 10 | GetRandomValue(0, 31) << 5 | GetRandomValue(0, 31);
         megaArrayOfAlPositions.push_back(curRandPosition);

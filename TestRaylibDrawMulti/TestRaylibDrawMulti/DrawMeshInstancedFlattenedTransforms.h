@@ -293,12 +293,6 @@ void DrawMeshInstancedFlattenedPositions(Mesh& genMesh, Material material, const
 
 void DrawMeshMultiInstancedDrawIndirect(GenerativeMesh& genMesh, Material material, const int* instancePositions, int instances, unsigned int indirectBufferVBO, DrawArraysIndirectCommand* cmds, unsigned int numCommands)
 {
-    // Instancing required variables
-    //float16* instanceTransforms = NULL;
-    if (genMesh.instanceVBOID == 0) {
-        genMesh.instanceVBOID = 0;
-    }
-
     // Bind shader program
     rlEnableShader(material.shader.id);
 
@@ -481,15 +475,38 @@ void DrawMeshMultiInstancedDrawIndirect(GenerativeMesh& genMesh, Material materi
         // Draw mesh instanced ******************************************************************************************************************************************************************
         // Draw mesh instanced ******************************************************************************************************************************************************************
         // Draw mesh instanced ******************************************************************************************************************************************************************
+
         //if (genMesh.mesh.indices != NULL) rlDrawVertexArrayElementsInstanced(0, genMesh.mesh.triangleCount * 3, 0, instances);
         //else rlDrawVertexArrayInstanced(0, genMesh.mesh.vertexCount, instances);
+
         //rlDrawVertexArrayInstanced(0, genMesh.mesh.vertexCount, instances);                   WORKS
+
         //rlDrawVertexArrayInstancedTriangleStrip(0, genMesh.mesh.vertexCount, instances);      WORKS
-        //rlDrawVertexArrayInstancedTriangleStrip(0, genMesh.mesh.vertexCount, instances);      WORKS
-        //rlDrawArraysInstancedBaseInstanceTriangleStrip(0, 4, instances, 0);                   WORKS
+
+        //rlDrawArraysInstancedBaseInstanceTriangleStrip(0, genMesh.mesh.vertexCount, instances, 0);        //WORKS
+        //VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+        //void rlDrawArraysInstancedBaseInstanceTriangleStrip(int first, int count, int instanceCount, int baseinstance)
+        //{
+        //    glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, first, count, instanceCount, baseinstance);
+        //}
+
         if (numCommands > 0) {
             rlBindDrawBufferIndirect(indirectBufferVBO);
+            //VVVVVVVVVVVVVVVVVVVVVVVV
+            //void rlBindDrawBufferIndirect(unsigned int bufferID)
+            //{
+            //#if defined(GRAPHICS_API_OPENGL_43)
+            //    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, bufferID);
+            //#else
+            //    TRACELOG(RL_LOG_WARNING, "Indirect Draw Buffer: Indirect Draw Buffer not enabled. Define GRAPHICS_API_OPENGL_43");
+            //#endif
+            //}
             rlMultiDrawArraysIndirectTriangleStrip(0, numCommands, 0);
+            // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+            //void rlMultiDrawArraysIndirectTriangleStrip(const void* indirect, int drawCount, int stride)
+            //{
+            //    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, indirect, drawCount, stride);
+            //}
         }
     }
 
